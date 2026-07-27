@@ -1,0 +1,37 @@
+# ============================================================
+# AQM — Files that must not be committed
+# ============================================================
+
+# ESPHome credentials
+secrets.yaml
+**/secrets.yaml
+
+# ESPHome cache and build artifacts
+.esphome/
+**/.esphome/
+
+# Private and legacy files
+old/
+
+# Compiled firmware
+*.bin
+*.elf
+*.map
+*.hex
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Editors
+.vscode/
+.idea/
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+
+# Temporary and backup files
+*.tmp
+*.bak
+*~

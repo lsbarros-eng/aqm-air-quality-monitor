@@ -1,0 +1,39 @@
+# ============================================================
+# AQM — OLED DISPLAY PACKAGE
+# Display: SSD1306 128x64, I2C address 0x3C
+# Package Version: v0.1.0
+# ============================================================
+#
+# This package contains only the local display resources and layout.
+# Sensor IDs referenced here are defined in AQM_FW_v0.1.0.yaml.
+# A future TFT or other dashboard can replace this file while leaving
+# acquisition, networking and alert logic unchanged.
+
+font:
+  - file: "gfonts://Roboto"
+    id: fonte_media
+    size: 14
+
+  - file: "gfonts://Roboto"
+    id: fonte_pequena
+    size: 10
+
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 128x64"
+    address: 0x3C
+    update_interval: 5s
+    lambda: |-
+      // Line 1: CO2 concentration.
+      it.printf(0, 0, id(fonte_media), "CO2: %.0f ppm", id(co2_ppm).state);
+
+      // Line 2: SCD41 temperature.
+      it.printf(0, 16, id(fonte_media), "T: %.1f C", id(temp_scd41).state);
+
+      // Line 3: SCD41 relative humidity.
+      it.printf(0, 32, id(fonte_media), "UR: %.1f %%", id(umidade_scd41).state);
+
+      // Line 4: atmospheric pressure and RTC time.
+      it.printf(0, 48, id(fonte_pequena), "%.0f hPa  %s",
+        id(pressao).state,
+        id(rtc_time).now().strftime("%H:%M").c_str());
