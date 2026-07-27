@@ -1,11 +1,16 @@
 # ============================================================
 # AQM — Air Quality Monitor
 #
-# System Version:         v0.1.0
-# Firmware Version:       v0.1.0
+# System Version:         v0.1.1
+# Firmware Version:       v0.1.1
 # Hardware Architecture:  A03
 # Development Stage:      Reduced-Wiring Breadboard Prototype
 #
+# Release focus:
+#   - Modular display configuration
+#   - Documentation improvements
+#   - Hardware illustration
+# ============================================================
 # Controller: ESP32-32D
 # Sensors:
 #   - SCD41: CO2, temperature and relative humidity
