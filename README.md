@@ -60,6 +60,14 @@ Validated in this release:
 | BME280 | `0x76` |
 | RTC module EEPROM, when present | `0x57` |
 
+### Prototype wiring illustration
+
+The illustration below documents the AQM v0.1.0 breadboard prototype. All modules share the same I²C bus and are powered at 3.3 V.
+
+![AQM v0.1.0 breadboard prototype](images/AQM_v0.1.0_breadboard_prototype_preview.png)
+
+[Open or download the editable SVG version](images/AQM_v0.1.0_breadboard_prototype.svg).
+
 ## Firmware installation
 
 1. Install ESPHome.
@@ -103,6 +111,10 @@ aqm-air-quality-monitor/
 │   ├── troubleshooting.md
 │   └── wiring.md
 └── images/
+    ├── aqm-a03-overview.jpg
+    ├── aqm-web-interface.png
+    ├── AQM_v0.1.0_breadboard_prototype_preview.png
+    └── AQM_v0.1.0_breadboard_prototype.svg
 ```
 
 ## Modular display configuration
