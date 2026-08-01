@@ -1,0 +1,197 @@
+# ============================================================
+# AQM — Air Quality Monitor
+#
+# System Version:         v0.1.2
+# Firmware Version:       v0.1.2
+# Hardware Architecture:  A03
+# Development Stage:      Reduced-Wiring Breadboard Prototype
+#
+# Release focus:
+#   - Modular display configuration
+#   - Documentation improvements
+#   - Hardware illustration
+# ============================================================
+# Controller: ESP32-32D
+# Sensors:
+#   - SCD41: CO2, temperature and relative humidity
+#   - BME280: temperature, relative humidity and pressure
+#   - DS3231: real-time clock
+#
+# Local Interface:
+#   - SSD1306 OLED display
+#   - Wi-Fi web server
+#
+# Shared I2C bus:
+#   SDA -> GPIO21
+#   SCL -> GPIO22
+#
+# I2C addresses:
+#   OLED   -> 0x3C
+#   SCD41  -> 0x62
+#   DS3231 -> 0x68
+#   BME280 -> 0x76
+# ============================================================
+
+esphome:
+  name: aqm-monitor
+  friendly_name: Air Quality Monitor
+
+  on_boot:
+    then:
+      - ds1307.read_time:
+          id: rtc_time
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Display configuration is kept in an independent package.
+# This allows the OLED to be replaced later without rewriting
+# the sensor, network and alert configuration.
+packages:
+  display_dashboard: !include display_oled_ssd1306.yaml
+
+# Log via USB for diagnostics.
+logger:
+
+# Over-the-air firmware updates.
+ota:
+  - platform: esphome
+
+# Wi-Fi credentials are stored separately in secrets.yaml.
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Static address selected for AQM.
+  # Important: configure the router DHCP pool to end at 192.168.0.199
+  # so that 192.168.0.240 remains outside the automatically assigned range.
+  manual_ip:
+    static_ip: 192.168.0.240
+    gateway: 192.168.0.1
+    subnet: 255.255.255.0
+    dns1: 192.168.0.1
+
+  # Emergency access point if the domestic Wi-Fi connection fails.
+  ap:
+    ssid: "AQM-Fallback"
+    password: !secret fallback_password
+
+# Captive portal for easier recovery through the fallback access point.
+captive_portal:
+
+# Local web interface: http://192.168.0.240
+web_server:
+  port: 80
+
+# Shared I2C bus.
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  scan: true
+
+# DS3231 real-time clock. The DS3231 is compatible with this driver.
+time:
+  # Physical RTC: read during startup.
+  - platform: ds1307
+    id: rtc_time
+    address: 0x68
+    timezone: America/Sao_Paulo
+    update_interval: never
+
+  # Internet time: synchronize and update the physical RTC.
+  - platform: sntp
+    id: network_time
+    timezone: America/Sao_Paulo
+    on_time_sync:
+      then:
+        - ds1307.write_time:
+            id: rtc_time
+
+# ============================================================
+# SENSORS
+# ============================================================
+
+sensor:
+  # SCD41: CO2, temperature and relative humidity.
+  - platform: scd4x
+    id: scd41
+    address: 0x62
+    measurement_mode: periodic
+    update_interval: 60s
+
+    co2:
+      name: "CO2"
+      id: co2_ppm
+      unit_of_measurement: "ppm"
+      filters:
+        - exponential_moving_average:
+            alpha: 0.2
+            send_every: 1
+
+    temperature:
+      name: "Temperatura"
+      id: temp_scd41
+      filters:
+        - exponential_moving_average:
+            alpha: 0.2
+            send_every: 1
+
+    humidity:
+      name: "Umidade"
+      id: umidade_scd41
+      filters:
+        - exponential_moving_average:
+            alpha: 0.2
+            send_every: 1
+
+    temperature_offset: 4.0
+    automatic_self_calibration: true
+
+  # BME280: pressure, temperature and relative humidity.
+  # Default address: 0x76. If it is not detected, test 0x77.
+  - platform: bme280_i2c
+    address: 0x76
+    update_interval: 30s
+
+    temperature:
+      name: "Temperatura BME280"
+      id: temp_bme
+
+    pressure:
+      name: "Pressão Atmosférica"
+      id: pressao
+      unit_of_measurement: "hPa"
+
+    humidity:
+      name: "Umidade BME280"
+      id: umidade_bme
+
+# ============================================================
+# OPERATIONAL ALERTS — AQM v0.1.0
+# ============================================================
+
+binary_sensor:
+  - platform: template
+    name: "Alerta CO2 Elevado"
+    # Between 1000 and 1500 ppm: recommend ventilation.
+    lambda: |-
+      return id(co2_ppm).state > 1000 && id(co2_ppm).state <= 1500;
+
+  - platform: template
+    name: "Alerta CO2 Critico"
+    # Above 1500 ppm: urgent ventilation recommended.
+    lambda: |-
+      return id(co2_ppm).state > 1500;
+
+  - platform: template
+    name: "Alerta Umidade Alta"
+    # Above 70% RH: condition favourable to persistent dampness and mould.
+    lambda: |-
+      return id(umidade_scd41).state > 70.0;
+
+  - platform: template
+    name: "Alerta Umidade Baixa"
+    # Below 30% RH: dry-air condition.
+    lambda: |-
+      return id(umidade_scd41).state < 30.0;

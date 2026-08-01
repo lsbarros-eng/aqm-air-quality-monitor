@@ -73,17 +73,17 @@ The illustration below documents the AQM v0.1.0 breadboard prototype. All module
 1. Install ESPHome.
 2. Copy `firmware/secrets.example.yaml` to `firmware/secrets.yaml`.
 3. Replace the placeholder Wi-Fi credentials.
-4. Review the fixed-IP settings in `AQM_FW_v0.1.0.yaml` before compiling.
+4. Review the fixed-IP settings in `AQM_FW_v0.1.2.yaml` before compiling.
 5. Compile and install through USB:
 
 ```bash
-esphome run firmware/AQM_FW_v0.1.0.yaml --device /dev/ttyUSB0
+esphome run firmware/AQM_FW_v0.1.2.yaml --device /dev/ttyUSB0
 ```
 
 After the first successful installation, later updates can be sent by OTA:
 
 ```bash
-esphome run firmware/AQM_FW_v0.1.0.yaml --device 192.168.0.240
+esphome run firmware/AQM_FW_v0.1.2.yaml --device 192.168.0.240
 ```
 
 See [Commissioning](docs/commissioning.md) for validation steps.
@@ -101,7 +101,8 @@ aqm-air-quality-monitor/
 ├── CHANGELOG.md
 ├── .gitignore
 ├── firmware/
-│   ├── AQM_FW_v0.1.0.yaml
+│   ├── AQM_FW_v0.1.1.yaml
+│   ├── AQM_FW_v0.1.2.yaml
 │   ├── display_oled_ssd1306.yaml
 │   └── secrets.example.yaml
 ├── docs/
